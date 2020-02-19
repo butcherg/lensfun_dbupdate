@@ -23,6 +23,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "lensfun_dbupdate.h"
+
 #if (defined(_WIN32) || defined(__WIN32__))
 #define mkdir(A, B) mkdir(A)
 #endif
@@ -139,7 +141,6 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   char *ptr = (char *) realloc(mem->memory, mem->size + realsize + 1);
   if(ptr == NULL) {
     /* out of memory! */ 
-    printf("not enough memory (realloc returned NULL)\n");
     return 0;
   }
  
@@ -172,12 +173,10 @@ std::string getAsString(std::string url)
 	res = curl_easy_perform(curl_handle);
  
 	if(res != CURLE_OK) {
-		fprintf(stderr, "curl_easy_perform() failed: %s\n",
-			curl_easy_strerror(res));
+		return out;
 	}
 	else {
 		out.assign(chunk.memory,chunk.size);
-		printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
 	}
  
 	curl_easy_cleanup(curl_handle);
@@ -194,7 +193,6 @@ bool getAndSaveFile(std::string url)
 	CURL *curl;
 	CURLcode res;
 	std::string dbfile = base_name(url);
-	printf("dbfile: %s\n",dbfile.c_str());
  
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
@@ -207,7 +205,6 @@ bool getAndSaveFile(std::string url)
 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, f);
 			res = curl_easy_perform(curl);
 			if(res != CURLE_OK) {
-				fprintf(stderr, "Error: %s\n",curl_easy_strerror(res));
 				result = false;
 			}
 			fclose(f);
@@ -264,7 +261,6 @@ static int extract(const char *filename, int flags)
         if (filename != NULL && strcmp(filename, "-") == 0)
                 filename = NULL;
         if ((r = archive_read_open_filename(a, filename, 10240))) {
-                printf("%s\n",archive_error_string(a));
                 return -1; //fail("archive_read_open_filename()",archive_error_string(a), r);
         }
 
@@ -292,16 +288,7 @@ static int extract(const char *filename, int flags)
 }
 
 
-//print error and exit:
-
-void err(std::string msg)
-{
-	printf("Error: %s\n",msg.c_str());
-	exit(0);
-}
-
-
-int main(int argc, char ** argv)
+lf_db_return lensfun_dbupdate(int argc, char ** argv)
 {
 	int result;
 
@@ -316,7 +303,6 @@ int main(int argc, char ** argv)
 
 	//get versions.json:
 	std::string versions = getAsString(string_format("%sversions.json",repositoryurl.c_str()));
-	std::cout << versions << "\n";
 
 	//parse timestamp and version numbers from downloaded versions.json:
 	std::string foo = removeall(versions,'[');
@@ -327,9 +313,10 @@ int main(int argc, char ** argv)
 	for (int i=0; i<fields.size(); i++) if (atoi(fields[i].c_str()) == dbversion) versionavailable = true;
 	
 	if (!versionavailable) 
-		err(string_format("Version %d not available.",dbversion));
+		//err(string_format("Version %d not available.",dbversion));
+		return LENSFUN_DBUPDATE_NOVERSION;
 
-	//ToDo: check version_x/timestamp.txt against timestamp, if timestamp is <=, tell user the database is already at the current version
+	//check version_x/timestamp.txt against timestamp, if timestamp is <=, tell user the database is already at the current version
 	struct stat b;
 	bool isdirectory;
 	if (stat(dbdir.c_str(), &b) == 0) {
@@ -340,19 +327,19 @@ int main(int argc, char ** argv)
 		buffer << tsfile.rdbuf();
 		int ts = atoi(buffer.str().c_str());
 		if (ts >= timestamp) 
-			err(string_format("local timestamp: %d >= server timestamp: %d; local database is the most current version.",ts,timestamp));
+			//err(string_format("local timestamp: %d >= server timestamp: %d; local database is the most current version.",ts,timestamp));
+			return LENSFUN_DBUPDATE_CURRENTVERSION;
 	}
 	else isdirectory = false;
 	 
-	std::cout << "timestamp:" << timestamp << "  versionavailable:" << (versionavailable ? "true" : "false")  << "\n";
-
 	//build the url and file to retrieve and store the database:
 	std::string dbfile = string_format("%s.tar.bz2",dbdir.c_str());
 	std::string dburl = string_format("%s%s",repositoryurl.c_str(),dbfile.c_str());
 
 	//get the database file to the current working directory:
 	if (!getAndSaveFile(dburl))
-		err(string_format("Retrive %s failed.",dburl.c_str()));
+		//err(string_format("Retrive %s failed.",dburl.c_str()));
+		return LENSFUN_DBUPDATE_RETRIEVFAIL;
 
 	//store the working directory before cd'ing down into version_x/:
 	std::string prevdir = get_cwd();
@@ -362,6 +349,7 @@ int main(int argc, char ** argv)
 		mkdir(dbdir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		result = chdir(dbdir.c_str());
 	}
+	
 	//if the directory exists, cd into it and delete all the files:
 	else {
 		result = chdir(dbdir.c_str());
@@ -382,5 +370,7 @@ int main(int argc, char ** argv)
 	//cd back to the original cwd, remove the version_x.tar.bz2:
 	result = chdir(prevdir.c_str());
 	remove(dbfile.c_str());
+	
+	return LENSFUN_DBUPDATE_OK;
 }
 
