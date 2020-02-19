@@ -1,6 +1,6 @@
 CC=g++
 
-APP=curlfoo
+APP=lensfun_dbupdate
 
 $(APP): $(APP).o
 	$(CC) -o $(APP) $(APP).o  -larchive -lcurl
