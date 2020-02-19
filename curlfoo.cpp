@@ -23,6 +23,10 @@
 #include <iostream>
 #include <sstream>
 
+#if (defined(_WIN32) || defined(__WIN32__))
+#define mkdir(A, B) mkdir(A)
+#endif
+
 
 //utility routines:
 
