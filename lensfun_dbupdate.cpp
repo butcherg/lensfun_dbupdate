@@ -288,13 +288,15 @@ static int extract(const char *filename, int flags)
 }
 
 
-lf_db_return lensfun_dbupdate(int argc, char ** argv)
+lf_db_return lensfun_dbupdate(int version, std::string dbpath)
 {
 	int result;
 
 	//this is the lensfun databaseversion to be installed/updated
-	int dbversion = 1;
-	if (argc >=2) dbversion = atoi(argv[1]);
+	int dbversion = version;
+	
+	//if a path to the database is specified, cd to it:
+	if (!dbpath.empty()) result = chdir(dbpath.c_str());
 
 	const std::string repositoryurl = "http://lensfun.sourceforge.net/db/";
 
