@@ -5,12 +5,18 @@ A quite-hacky command line program that'll access lensfun.sourceforge.net to che
 download a specified version, and unpack it in the relevant directory.   Behavior is roughly equivalent to the 
 lensfun-update-data python script in the lensfun source tree.
 
-Of note is that all the guts of the program are implemented in the lensfun_dbupdate.h/cpp source.  There's one exposed 
-function:
+Of note is that all the guts of the program are implemented in the lensfun_dbupdate.h/cpp source.  There are two exposed 
+functions:
 
-<pre>lf_db_return lensfun_dbupdate(int version, std::string dbpath=std::string());</pre>
+<pre>
+//checks available database version, state of installed version:
+lf_db_return lensfun_dbcheck(int version, std::string dbpath=std::string());
 
-which does all the work, and is ready for incorporation in other software.
+//does the full data base availbility and version checks, retrieves and installs new database:
+lf_db_return lensfun_dbupdate(int version, std::string dbpath=std::string());
+</pre>
+
+ready for incorporation in other software.
 
 # Dependencies:
 
