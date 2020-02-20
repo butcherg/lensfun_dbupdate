@@ -287,6 +287,54 @@ static int extract(const char *filename, int flags)
 }
 
 
+//the dbupdate functions:
+
+lf_db_return lensfun_dbcheck(int version, std::string dbpath)
+{
+	int result;
+
+	//this is the lensfun databaseversion to be installed/updated
+	int dbversion = version;
+	
+	//if a path to the database is specified, cd to it; otherwise, stay at the cwd:
+	if (!dbpath.empty()) result = chdir(dbpath.c_str());
+
+	const std::string repositoryurl = "http://lensfun.sourceforge.net/db/";
+
+	//build the dir to store the lensfun database:
+	std::string dbdir = string_format("version_%d",dbversion);	
+
+	//get versions.json:
+	std::string versions = getAsString(string_format("%sversions.json",repositoryurl.c_str()));
+
+	//parse timestamp and version numbers from downloaded versions.json:
+	std::string foo = removeall(versions,'[');
+	foo = removeall(foo,']');
+	std::vector<std::string> fields = split(foo,",");
+	int timestamp = atoi(fields[0].c_str());
+	bool versionavailable = false;
+	for (int i=0; i<fields.size(); i++) if (atoi(fields[i].c_str()) == dbversion) versionavailable = true;
+	
+	if (!versionavailable) 
+		//err(string_format("Version %d not available.",dbversion));
+		return LENSFUN_DBUPDATE_NOVERSION;
+
+	//check version_x/timestamp.txt against timestamp, if timestamp is <=, tell user the database is already at the current version
+	struct stat b;
+	if (stat(dbdir.c_str(), &b) == 0) {
+		std::ifstream tsfile;
+		tsfile.open(string_format("%s/timestamp.txt",dbdir.c_str()));
+		std::stringstream buffer;
+		buffer << tsfile.rdbuf();
+		int ts = atoi(buffer.str().c_str());
+		if (ts >= timestamp) 
+			return LENSFUN_DBUPDATE_CURRENTVERSION;
+		else
+			return LENSFUN_DBUPDATE_OLDVERSION;
+	}
+	else return LENSFUN_DBUPDATE_NODATABASE;
+}
+
 lf_db_return lensfun_dbupdate(int version, std::string dbpath)
 {
 	int result;
@@ -294,7 +342,7 @@ lf_db_return lensfun_dbupdate(int version, std::string dbpath)
 	//this is the lensfun databaseversion to be installed/updated
 	int dbversion = version;
 	
-	//if a path to the database is specified, cd to it:
+	//if a path to the database is specified, cd to it; otherwise, stay at the cwd:
 	if (!dbpath.empty()) result = chdir(dbpath.c_str());
 
 	const std::string repositoryurl = "http://lensfun.sourceforge.net/db/";
