@@ -82,16 +82,15 @@ std::string string_format(const std::string fmt, ...)
 }
 
 //from https://stackoverflow.com/questions/8520560/get-a-file-name-from-a-path, Pixelchemist:
-template<class T>
-T base_name(T const & path, T const & delims = "/\\")
+std::string base_name(std::string const & path, std::string const & delims = "/\\")
 {
   return path.substr(path.find_last_of(delims) + 1);
 }
-template<class T>
-T remove_extension(T const & filename)
+
+std::string remove_extension(std::string const &filename)
 {
-  typename T::size_type const p(filename.find_last_of('.'));
-  return p > 0 && p != T::npos ? filename.substr(0, p) : filename;
+  typename std::string::size_type const p(filename.find_last_of('.'));
+  return p > 0 && p != std::string::npos ? filename.substr(0, p) : filename;
 }
 
 std::vector<std::string> split(std::string s, std::string delim)
