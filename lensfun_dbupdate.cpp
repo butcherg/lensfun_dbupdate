@@ -68,7 +68,7 @@ std::string base_name(std::string const & path, std::string const & delims = "/\
 
 std::string remove_extension(std::string const &filename)
 {
-  typename std::string::size_type const p(filename.find_last_of('.'));
+  std::string::size_type const p(filename.find_last_of('.'));
   return p > 0 && p != std::string::npos ? filename.substr(0, p) : filename;
 }
 
