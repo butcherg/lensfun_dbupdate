@@ -10,10 +10,11 @@ functions:
 
 <pre>
 //checks available database version, state of installed version:
-lf_db_return lensfun_dbcheck(int version, std::string dbpath=std::string());
+lf_db_return lensfun_dbcheck(int version,  std::string dbpath=std::string(), std::string dburl="http://lensfun.sourceforge.net/db/");
 
 //does the full data base availbility and version checks, retrieves and installs new database:
-lf_db_return lensfun_dbupdate(int version, std::string dbpath=std::string());
+lf_db_return lensfun_dbupdate(int version, std::string dbpath=std::string(), std::string dburl="http://lensfun.sourceforge.net/db/");
+
 </pre>
 
 ready for incorporation in other software.
