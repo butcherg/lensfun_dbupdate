@@ -60,30 +60,6 @@ std::string get_cwd()
    return ( getcwd(temp, sizeof(temp)) ? std::string( temp ) : std::string("") );
 }
 
-/* using strutil instead
-std::string string_format(const std::string fmt, ...) 
-{
-    int size = ((int)fmt.size()) * 2 + 50;   // Use a rubric appropriate for your code
-    std::string str;
-    va_list ap;
-    while (1) {     // Maximum two passes on a POSIX system...
-        str.resize(size);
-        va_start(ap, fmt);
-        int n = vsnprintf((char *)str.data(), size, fmt.c_str(), ap);
-        va_end(ap);
-        if (n > -1 && n < size) {  // Everything worked
-            str.resize(n);
-            return str;
-        }
-        if (n > -1)  // Needed size returned
-            size = n + 1;   // For null char
-        else
-            size *= 2;      // Guess at a larger size (OS specific)
-    }
-    return str;
-}
-*/
-
 //from https://stackoverflow.com/questions/8520560/get-a-file-name-from-a-path, Pixelchemist:
 std::string base_name(std::string const & path, std::string const & delims = "/\\")
 {
@@ -95,30 +71,6 @@ std::string remove_extension(std::string const &filename)
   typename std::string::size_type const p(filename.find_last_of('.'));
   return p > 0 && p != std::string::npos ? filename.substr(0, p) : filename;
 }
-
-/* using strutil instead
-std::vector<std::string> split(std::string s, std::string delim)
-{
-        std::vector<std::string> v;
-        if (s.find(delim) == std::string::npos) {
-                v.push_back(s);
-                return v;
-        }
-        size_t pos=0;
-        size_t start;
-        while (pos < s.length()) {
-                start = pos;
-                pos = s.find(delim,pos);
-                if (pos == std::string::npos) {
-                        v.push_back(s.substr(start,s.length()-start));
-                        return v;
-                }
-                v.push_back(s.substr(start, pos-start));
-                pos += delim.length();
-        }
-        return v;
-}
-*/
 
 std::string removeall(std::string str, char c)
 {
@@ -303,8 +255,7 @@ lf_db_return lensfun_dbcheck(int version, std::string dbpath, std::string dburl)
 	//if a path to the database is specified, cd to it; otherwise, stay at the cwd:
 	if (!dbpath.empty()) result = chdir(dbpath.c_str());
 
-	std::string repositoryurl = "http://lensfun.sourceforge.net/db/";
-	if (!dburl.empty()) repositoryurl = dburl;
+	std::string repositoryurl = dburl;
 
 	//build the dir to store the lensfun database:
 	std::string dbdir = string_format("version_%d",dbversion);	
@@ -350,8 +301,7 @@ lf_db_return lensfun_dbupdate(int version, std::string dbpath, std::string dburl
 	//if a path to the database is specified, cd to it; otherwise, stay at the cwd:
 	if (!dbpath.empty()) result = chdir(dbpath.c_str());
 
-	std::string repositoryurl = "http://lensfun.sourceforge.net/db/";
-	if (!dburl.empty()) repositoryurl = dburl;
+	std::string repositoryurl = dburl;
 
 	//build the dir to store the lensfun database:
 	std::string dbdir = string_format("version_%d",dbversion);	
