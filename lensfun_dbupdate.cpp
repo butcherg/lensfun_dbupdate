@@ -23,6 +23,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "gimage/strutil.h"
 #include "lensfun_dbupdate.h"
 
 #if (defined(_WIN32) || defined(__WIN32__))
@@ -59,6 +60,7 @@ std::string get_cwd()
    return ( getcwd(temp, sizeof(temp)) ? std::string( temp ) : std::string("") );
 }
 
+/* using strutil instead
 std::string string_format(const std::string fmt, ...) 
 {
     int size = ((int)fmt.size()) * 2 + 50;   // Use a rubric appropriate for your code
@@ -80,6 +82,7 @@ std::string string_format(const std::string fmt, ...)
     }
     return str;
 }
+*/
 
 //from https://stackoverflow.com/questions/8520560/get-a-file-name-from-a-path, Pixelchemist:
 std::string base_name(std::string const & path, std::string const & delims = "/\\")
@@ -93,6 +96,7 @@ std::string remove_extension(std::string const &filename)
   return p > 0 && p != std::string::npos ? filename.substr(0, p) : filename;
 }
 
+/* using strutil instead
 std::vector<std::string> split(std::string s, std::string delim)
 {
         std::vector<std::string> v;
@@ -114,7 +118,7 @@ std::vector<std::string> split(std::string s, std::string delim)
         }
         return v;
 }
-
+*/
 
 std::string removeall(std::string str, char c)
 {
@@ -385,11 +389,11 @@ lf_db_return lensfun_dbupdate(int version, std::string dbpath, std::string dburl
 	 
 	//build the url and file to retrieve and store the database:
 	std::string dbfile = string_format("%s.tar.bz2",dbdir.c_str());
-	std::string databaseurl = string_format("%s%s",repositoryurl.c_str(),dbfile.c_str());
+	std::string databbaseurl = string_format("%s%s",repositoryurl.c_str(),dbfile.c_str());
 
 	//get the database file to the current working directory:
-	if (!getAndSaveFile(databaseurl))
-		//err(string_format("Retrive %s failed.",databaseurl.c_str()));
+	if (!getAndSaveFile(databbaseurl))
+		//err(string_format("Retrive %s failed.",databbaseurl.c_str()));
 		return LENSFUN_DBUPDATE_RETRIEVFAIL;
 
 	//store the working directory before cd'ing down into version_x/:
