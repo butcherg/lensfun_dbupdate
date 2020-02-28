@@ -18,4 +18,7 @@ lf_db_return lensfun_dbcheck(int version,  std::string dbpath=std::string(), std
 //does the full data base availbility and version checks, retrieves and installs new database:
 lf_db_return lensfun_dbupdate(int version, std::string dbpath=std::string(), std::string dburl="http://lensfun.sourceforge.net/db/");
 
+//does the full data base availbility and version checks, retrieves and installs new database, directly in the dbpath (no version_x dir):
+lf_db_return lensfun_dbupdate_inplace(int version, std::string dbpath=std::string(), std::string dburl="http://lensfun.sourceforge.net/db/");
+
 #endif

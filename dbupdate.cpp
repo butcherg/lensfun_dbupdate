@@ -1,5 +1,6 @@
 #include <iostream>
 #include "lensfun_dbupdate.h"
+#include <lensfun/lensfun.h>
 
 //print error and exit:
 
@@ -20,11 +21,13 @@ int main(int argc, char ** argv)
 		std::cout << "\tversion:\tlensfun database version to be retrieved.\n\t\t\tDefault=1\n\n";
 		std::cout << "\tlocalpath:\talready-existing path in which to install version_x directory\n\t\t\tcontaining the lensfun XMl files and timestamp.txt.\n\t\t\tDefault=cwd\n\n";
 		std::cout << "\turl:\t\tURL of the lensfun database repository.\n\t\t\tDefault=http://lensfun.sourceforge.net/db/\n\n";
-		std::cout << "Note: using any of the above parameters requires specifying the preceding parameters.\n\n"; 
+		std::cout << "Note 1: using any of the above parameters requires specifying the preceding parameters.\n";
+		std::cout << "Note 2: running dbupdate with no parameters installs the database version specified in the\n";
+		std::cout << "\tlensfun.h LF_MAX_DATABASE_VERSION, in the current working directory.\n\n";
 		exit(1);
 	}
 
-	if (argc == 1) result = lensfun_dbupdate(1); //defaults
+	if (argc == 1) result = lensfun_dbupdate_inplace(LF_MAX_DATABASE_VERSION); //defaults
 	else if (argc == 2) result = lensfun_dbupdate(atoi(argv[1])); //version
 	else if (argc == 3) result = lensfun_dbupdate(atoi(argv[1]), std::string(argv[2])); //version + localpath
 	else if (argc >= 4) result = lensfun_dbupdate(atoi(argv[1]), std::string(argv[2]), std::string(argv[3]));//version + localpath + url

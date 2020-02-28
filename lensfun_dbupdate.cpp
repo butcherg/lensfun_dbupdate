@@ -381,3 +381,73 @@ lf_db_return lensfun_dbupdate(int version, std::string dbpath, std::string dburl
 	return LENSFUN_DBUPDATE_OK;
 }
 
+lf_db_return lensfun_dbupdate_inplace(int version, std::string dbpath, std::string dburl)
+{
+	int result;
+
+	//this is the lensfun databaseversion to be installed/updated
+	int dbversion = version;
+	
+	//if a path to the database is specified, cd to it; otherwise, stay at the cwd:
+	if (!dbpath.empty()) result = chdir(dbpath.c_str());
+
+	std::string repositoryurl = dburl;
+
+	//build the filename to store the lensfun database:
+	std::string dbdir = string_format("version_%d",dbversion);	
+
+	//get versions.json:
+	std::string versions = getAsString(string_format("%sversions.json",repositoryurl.c_str()));
+
+	//parse timestamp and version numbers from downloaded versions.json:
+	std::string foo = removeall(versions,'[');
+	foo = removeall(foo,']');
+	std::vector<std::string> fields = split(foo,",");
+	int timestamp = atoi(fields[0].c_str());
+	bool versionavailable = false;
+	for (int i=0; i<fields.size(); i++) if (atoi(fields[i].c_str()) == dbversion) versionavailable = true;
+	
+	if (!versionavailable) 
+		//err(string_format("Version %d not available.",dbversion));
+		return LENSFUN_DBUPDATE_NOVERSION;
+
+	//check version_x/timestamp.txt against timestamp, if timestamp is <=, tell user the database is already at the current version
+	struct stat b;
+	std::ifstream tsfile;
+	tsfile.open(string_format("timestamp.txt"));
+	std::stringstream buffer;
+	buffer << tsfile.rdbuf();
+	int ts = atoi(buffer.str().c_str());
+	if (ts >= timestamp) 
+		return LENSFUN_DBUPDATE_CURRENTVERSION;
+
+	 
+	//build the url and file to retrieve and store the database:
+	std::string dbfile = string_format("%s.tar.bz2",dbdir.c_str());
+	std::string databbaseurl = string_format("%s%s",repositoryurl.c_str(),dbfile.c_str());
+
+	//get the database file to the current working directory:
+	if (!getAndSaveFile(databbaseurl))
+		//err(string_format("Retrive %s failed.",databbaseurl.c_str()));
+		return LENSFUN_DBUPDATE_RETRIEVFAIL;
+
+
+	std::vector<std::string> flist = filelist("(.*)(\\.xml)");
+	for (int i=0; i<flist.size(); i++)
+		remove(flist[i].c_str());
+	
+	//extract the database tar.bz2 into the version_x directory:
+	result = extract((std::string("./")+dbfile).c_str(), ARCHIVE_EXTRACT_TIME);
+
+	//ToDo: timestamp.txt
+	std::string timestampstring = string_format("%d",timestamp);
+	std::ofstream out("timestamp.txt");
+	out << timestampstring;
+	out.close();
+
+	//remove the version_x.tar.bz2:
+	remove(dbfile.c_str());
+	
+	return LENSFUN_DBUPDATE_OK;
+}
+
