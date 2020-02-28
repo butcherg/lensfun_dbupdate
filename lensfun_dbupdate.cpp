@@ -22,6 +22,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <regex>
 
 #include "gimage/strutil.h"
 #include "lensfun_dbupdate.h"
@@ -33,8 +34,9 @@
 
 //utility routines:
 
-std::vector<std::string> filelist()
+std::vector<std::string> filelist(std::string patternstring)
 {
+	std::regex pattern(patternstring);
 	std::vector<std::string> files;
         DIR *dir = NULL;
         struct dirent *drnt = NULL;
@@ -46,7 +48,7 @@ std::vector<std::string> filelist()
                 {
 			std::string file = std::string(drnt->d_name);
 			if (file == "." | file == "..") continue;
-			files.push_back(file);
+			if (std::regex_match (file,pattern)) files.push_back(file);
                 }
                 closedir(dir);
         }
@@ -358,7 +360,7 @@ lf_db_return lensfun_dbupdate(int version, std::string dbpath, std::string dburl
 	//if the directory exists, cd into it and delete all the files:
 	else {
 		result = chdir(dbdir.c_str());
-		std::vector<std::string> flist = filelist();
+		std::vector<std::string> flist = filelist("(.*)(\\.xml)");
 		for (int i=0; i<flist.size(); i++)
 			remove(flist[i].c_str());
 	}
