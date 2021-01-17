@@ -21,8 +21,6 @@ int main(int argc, char ** argv)
 		std::cout << "\tlocalpath:\talready-existing path in which to install version_x directory\n\t\t\tcontaining the lensfun XMl files and timestamp.txt.\n\t\t\tDefault=cwd\n\n";
 		std::cout << "\turl:\t\tURL of the lensfun database repository.\n\t\t\tDefault=http://lensfun.sourceforge.net/db/\n\n";
 		std::cout << "Note 1: using any of the above parameters requires specifying the preceding parameters.\n";
-		std::cout << "Note 2: running dbupdate with no parameters installs the database version specified in the\n";
-		std::cout << "\tlensfun.h LF_MAX_DATABASE_VERSION, in the current working directory.\n\n";
 		exit(EXIT_SUCCESS);
 	}
 
